@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Golfle</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    background: #2d5a27;
+    background-image: radial-gradient(ellipse at top, #3a7233 0%, #2d5a27 60%, #1e3d1a 100%);
+    color: #1a1a1a;
+    min-height: 100vh;
+    padding: 16px;
+    padding-bottom: 120px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    color: #fdf6e3;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    margin-bottom: 2px;
+    font-family: 'Georgia', serif;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 10px;
+    color: rgba(253,246,227,0.6);
+    margin-bottom: 16px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .card {
+    background: #fdf6e3;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .leaderboard {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 14px 10px;
+    background: #f5ecd3;
+    border-bottom: 2px solid #d4c9a8;
+    flex-wrap: wrap;
+  }
+  .lb-card {
+    text-align: center;
+    min-width: 56px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #fdf6e3;
+    border: 1px solid #d4c9a8;
+  }
+  .lb-card.leader {
+    border: 2px solid #c5960c;
+    background: #fef9e7;
+    box-shadow: 0 0 8px rgba(197,150,12,0.3);
+  }
+  .lb-name { font-size: 10px; color: #6b5d3e; font-family: -apple-system, sans-serif; font-weight: 600; }
+  .lb-score { font-size: 20px; font-weight: 700; margin: 2px 0; }
+  .lb-score.negative { color: #b91c1c; }
+  .lb-score.positive { color: #1a1a1a; }
+  .lb-score.even { color: #4a5568; }
+  .lb-rank { font-size: 9px; color: #9b8e6e; font-family: -apple-system, sans-serif; }
+
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th {
+    background: #2d5a27;
+    color: #fdf6e3;
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 4px;
+    font-family: -apple-system, sans-serif;
+    border-right: 1px solid #3a7233;
+  }
+  th:last-child { border-right: none; }
+  td {
+    padding: 7px 4px;
+    text-align: center;
+    border-bottom: 1px solid #e8dfc4;
+    border-right: 1px solid #e8dfc4;
+    font-family: -apple-system, sans-serif;
+    font-size: 13px;
+  }
+  td:last-child { border-right: none; }
+  td:first-child {
+    color: #6b5d3e;
+    font-weight: 700;
+    font-size: 11px;
+    background: #f5ecd3;
+    width: 32px;
+  }
+  td.word {
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #2d5a27;
+    font-size: 10px;
+  }
+  td.word.hidden-word {
+    color: #c9bfa0;
+    letter-spacing: 1px;
+    font-weight: 400;
+    font-style: italic;
+  }
+  td.eagle { color: #b91c1c; font-weight: 800; background: #fef2f2; }
+  td.birdie { color: #b91c1c; font-weight: 700; }
+  td.bogey { color: #1a1a1a; font-weight: 500; }
+  td.dbl-bogey { color: #1a1a1a; font-weight: 700; background: #f5f0e0; }
+  td.par { color: #9b8e6e; }
+  tr:nth-child(even) { background: #faf3de; }
+  tr:nth-child(odd) { background: #fdf6e3; }
+  tr.total-row td {
+    border-top: 3px double #2d5a27;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 10px 4px;
+    background: #f5ecd3;
+  }
+  tr.total-row td:first-child { font-size: 10px; letter-spacing: 1px; }
+
+  /* Final results */
+  .final-banner {
+    background: #fdf6e3;
+    border-radius: 8px;
+    padding: 20px 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    text-align: center;
+  }
+  .final-label {
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: #9b8e6e;
+    text-transform: uppercase;
+    font-family: -apple-system, sans-serif;
+    margin-bottom: 4px;
+  }
+  .winner-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2d5a27;
+    font-family: Georgia, serif;
+  }
+  .winner-score {
+    font-size: 16px;
+    font-weight: 700;
+    color: #c5960c;
+    font-family: -apple-system, sans-serif;
+    margin-bottom: 14px;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+    text-align: left;
+  }
+  .stat-item {
+    background: #f5ecd3;
+    border-radius: 6px;
+    padding: 8px 10px;
+  }
+  .stat-label {
+    font-size: 9px;
+    color: #9b8e6e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: -apple-system, sans-serif;
+  }
+  .stat-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a1a;
+    font-family: -apple-system, sans-serif;
+  }
+  .final-standings {
+    margin-top: 14px;
+    border-top: 1px solid #e8dfc4;
+    padding-top: 12px;
+  }
+  .standing-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 4px;
+    font-family: -apple-system, sans-serif;
+    font-size: 14px;
+  }
+  .standing-row.first { font-weight: 800; color: #2d5a27; font-size: 16px; }
+  .standing-pos { width: 28px; color: #9b8e6e; font-size: 12px; font-weight: 600; }
+  .standing-name { flex: 1; }
+  .standing-score { font-weight: 700; min-width: 40px; text-align: right; }
+  .standing-score.neg { color: #b91c1c; }
+
+  .add-section {
+    background: #fdf6e3;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .add-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 2px;
+    color: #2d5a27;
+    font-family: -apple-system, sans-serif;
+  }
+  .add-subtitle {
+    font-size: 11px;
+    color: #9b8e6e;
+    margin-bottom: 12px;
+    font-family: -apple-system, sans-serif;
+  }
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .input-row label {
+    width: 60px;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+    color: #4a3f2f;
+    font-family: -apple-system, sans-serif;
+  }
+  .score-input {
+    width: 100%;
+    background: #fff;
+    border: 1px solid #d4c9a8;
+    border-radius: 6px;
+    color: #1a1a1a;
+    padding: 10px 12px;
+    font-size: 16px;
+    text-align: center;
+    font-family: -apple-system, sans-serif;
+    -webkit-appearance: none;
+  }
+  .score-input:focus { outline: none; border-color: #2d5a27; box-shadow: 0 0 0 2px rgba(45,90,39,0.2); }
+  .word-input {
+    width: 100%;
+    background: #fff;
+    border: 1px solid #d4c9a8;
+    border-radius: 6px;
+    color: #2d5a27;
+    padding: 10px 12px;
+    font-size: 16px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-weight: 700;
+    font-family: -apple-system, sans-serif;
+    -webkit-appearance: none;
+  }
+  .word-input:focus { outline: none; border-color: #2d5a27; box-shadow: 0 0 0 2px rgba(45,90,39,0.2); }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    font-family: -apple-system, sans-serif;
+  }
+  .btn-primary { background: #2d5a27; color: #fdf6e3; }
+  .btn-primary:active { background: #3a7233; }
+  .btn-share {
+    background: #c5960c;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  .btn-share:active { background: #d4a60e; }
+  .btn-danger {
+    background: #fdf6e3;
+    color: #b91c1c;
+    margin-top: 8px;
+    font-size: 13px;
+    padding: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .btn-secondary {
+    background: #f5ecd3;
+    color: #2d5a27;
+    margin-top: 8px;
+    font-size: 13px;
+    padding: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .btn-secondary:active { background: #e8dfc4; }
+
+  .png-preview {
+    margin-top: 16px;
+    text-align: center;
+  }
+  .png-preview img {
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+  .png-hint {
+    font-size: 11px;
+    color: rgba(253,246,227,0.6);
+    margin-top: 8px;
+    text-align: center;
+    font-family: -apple-system, sans-serif;
+  }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: #fdf6e3;
+    border-radius: 12px;
+    padding: 20px;
+    width: 100%;
+    max-width: 340px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  }
+  .modal h3 { font-size: 16px; margin-bottom: 12px; color: #2d5a27; font-family: -apple-system, sans-serif; }
+  .modal .btn { margin-top: 12px; }
+  .btn-cancel { background: #e8dfc4; color: #6b5d3e; }
+
+  /* Player management */
+  .player-mgmt {
+    background: #fdf6e3;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .player-mgmt-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #2d5a27;
+    font-family: -apple-system, sans-serif;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .player-list-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-family: -apple-system, sans-serif;
+  }
+  .player-list-item input {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #d4c9a8;
+    border-radius: 6px;
+    color: #1a1a1a;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-family: -apple-system, sans-serif;
+    -webkit-appearance: none;
+  }
+  .player-list-item input:focus { outline: none; border-color: #2d5a27; box-shadow: 0 0 0 2px rgba(45,90,39,0.2); }
+  .player-remove-btn {
+    background: none;
+    border: 1px solid #d4c9a8;
+    border-radius: 6px;
+    color: #b91c1c;
+    cursor: pointer;
+    padding: 6px 10px;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .player-remove-btn:active { background: #fef2f2; }
+  .player-add-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .player-add-row input {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #d4c9a8;
+    border-radius: 6px;
+    color: #1a1a1a;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-family: -apple-system, sans-serif;
+    -webkit-appearance: none;
+  }
+  .player-add-row input:focus { outline: none; border-color: #2d5a27; box-shadow: 0 0 0 2px rgba(45,90,39,0.2); }
+  .player-add-btn {
+    background: #2d5a27;
+    color: #fdf6e3;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: -apple-system, sans-serif;
+  }
+  .player-add-btn:active { background: #3a7233; }
+  .player-note {
+    font-size: 10px;
+    color: #9b8e6e;
+    margin-top: 8px;
+    font-family: -apple-system, sans-serif;
+  }
+  .toggle-players-btn {
+    font-size: 11px;
+    font-weight: 600;
+    color: #2d5a27;
+    background: none;
+    border: 1px solid #d4c9a8;
+    border-radius: 4px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-family: -apple-system, sans-serif;
+  }
+  .toggle-players-btn:active { background: #f5ecd3; }
+</style>
+</head>
+<body>
+
+<h1>GOLFLE</h1>
+<div class="subtitle">Wordle Golf Scorecard</div>
+
+<div class="card">
+  <div class="leaderboard" id="leaderboard"></div>
+  <div class="table-wrap">
+    <table id="scoreTable">
+      <thead><tr id="tableHeader"></tr></thead>
+      <tbody id="scoreBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="finalSection" style="display:none"></div>
+
+<div class="add-section" id="addSection">
+  <div class="add-title" id="addTitle">Add Hole</div>
+  <div class="add-subtitle">Enter scores as +/- par (e.g. -1 = birdie, 0 = par)</div>
+  <div class="input-row"><label>Word</label><input class="word-input" id="wordInput" maxlength="5" placeholder="WORD" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"></div>
+  <div id="scoreInputs"></div>
+  <button class="btn btn-primary" onclick="addHole()">Add Scores</button>
+</div>
+
+<button class="btn btn-share" onclick="generatePNG()">Generate Shareable Image</button>
+
+<div class="png-preview" id="pngPreview"></div>
+
+<button class="btn btn-danger" onclick="showUndo()" id="undoBtn" style="display:none">Undo Last Hole</button>
+
+<button class="btn btn-secondary" id="togglePlayersBtn" onclick="togglePlayerMgmt()">Manage Players</button>
+
+<div class="player-mgmt" id="playerMgmt" style="display:none">
+  <div class="player-mgmt-title">
+    <span>Players</span>
+  </div>
+  <div id="playerList"></div>
+  <div class="player-add-row">
+    <input type="text" id="newPlayerName" placeholder="New player name" maxlength="20">
+    <button class="player-add-btn" onclick="addPlayer()">Add</button>
+  </div>
+  <div class="player-note">Rename by editing above. New players get score 0 for past holes. Removing a player deletes their scores.</div>
+</div>
+
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3 id="editModalTitle">Edit Hole</h3>
+    <div class="input-row"><label>Word</label><input class="word-input" id="edit_word" maxlength="5" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"></div>
+    <div id="editScoreInputs"></div>
+    <button class="btn btn-primary" onclick="saveEdit()">Save</button>
+    <button class="btn btn-cancel" onclick="closeEdit()">Cancel</button>
+  </div>
+</div>
+
+<canvas id="pngCanvas" style="display:none"></canvas>
+
+<script>
+const MAX_HOLES = 18;
+const STORAGE_KEY = 'golfle_data_v4';
+const PLAYERS_KEY = 'golfle_players_v4';
+
+const DEFAULT_PLAYERS = ['Arthur','Ben','Dan','Jeff','Joe'];
+
+const DEFAULT_DATA = [
+  {scores:[0,0,0,-2,2], word:'ATTIC', date:'2026-02-22'},
+  {scores:[0,-2,-1,-1,0], word:'BUYER', date:'2026-02-23'},
+  {scores:[0,0,1,0,1], word:'SHRED', date:'2026-02-24'},
+  {scores:[0,-1,0,2,0], word:'LANCE', date:'2026-02-25'},
+  {scores:[-2,-1,0,1,0], word:'DIZZY', date:'2026-02-26'},
+  {scores:[0,0,0,1,0], word:'HYDRA', date:'2026-02-27'},
+  {scores:[2,0,1,0,0], word:'FLUKE', date:'2026-02-28'},
+  {scores:[0,0,0,0,0], word:'SLIME', date:'2026-03-01'},
+  {scores:[-1,-1,0,0,0], word:'LINEN', date:'2026-03-02'},
+  {scores:[0,1,0,0,-1], word:'THEFT', date:'2026-03-03'},
+  {scores:[2,1,0,0,0], word:'SHEEP', date:'2026-03-04'},
+  {scores:[1,-1,1,-1,0], word:'GUNKY', date:'2026-03-05'},
+  {scores:[0,3,1,1,0], word:'VOGUE', date:'2026-03-06'},
+  {scores:[2,0,0,-1,-1], word:'LOBBY', date:'2026-03-07'},
+  {scores:[0,1,0,0,0], word:'HASTY', date:'2026-03-08'}
+];
+
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function isBeforeToday(dateStr) {
+  if (!dateStr) return true;
+  return dateStr < todayStr();
+}
+
+function loadPlayers() {
+  try {
+    const saved = localStorage.getItem(PLAYERS_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return [...DEFAULT_PLAYERS];
+}
+
+function savePlayers(players) {
+  try { localStorage.setItem(PLAYERS_KEY, JSON.stringify(players)); } catch(e) {}
+}
+
+function loadData() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return DEFAULT_DATA.map(h => ({...h, scores: [...h.scores]}));
+}
+
+function saveData(data) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+let PLAYERS = loadPlayers();
+let holes = loadData();
+let editingHole = -1;
+
+function playerKey(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+}
+
+function fmtScore(n) {
+  if (n > 0) return '+' + n;
+  if (n === 0) return 'E';
+  return String(n);
+}
+
+function fmtCell(n) {
+  if (n > 0) return '+' + n;
+  if (n === 0) return '-';
+  return String(n);
+}
+
+function scoreClass(n) {
+  if (n <= -2) return 'eagle';
+  if (n < 0) return 'birdie';
+  if (n === 0) return 'par';
+  if (n >= 2) return 'dbl-bogey';
+  return 'bogey';
+}
+
+function totalClass(n) {
+  if (n < 0) return 'negative';
+  if (n > 0) return 'positive';
+  return 'even';
+}
+
+function getTotals() {
+  return PLAYERS.map((_, i) => holes.reduce((sum, h) => sum + (h.scores[i] || 0), 0));
+}
+
+function wordDisplay(hole) {
+  return isBeforeToday(hole.date) ? hole.word : '?????';
+}
+
+function isWordHidden(hole) {
+  return !isBeforeToday(hole.date);
+}
+
+function isComplete() {
+  return holes.length >= MAX_HOLES;
+}
+
+function getStats() {
+  const totals = getTotals();
+  const ranked = PLAYERS.map((name, i) => ({name, total: totals[i], idx: i}))
+    .sort((a, b) => a.total - b.total);
+  const stats = PLAYERS.map((name, i) => {
+    let eagles = 0, birdies = 0, pars = 0, bogeys = 0, best = Infinity, worst = -Infinity;
+    holes.forEach(h => {
+      const s = h.scores[i] || 0;
+      if (s <= -2) eagles++;
+      else if (s === -1) birdies++;
+      else if (s === 0) pars++;
+      else bogeys++;
+      if (s < best) best = s;
+      if (s > worst) worst = s;
+    });
+    return {name, total: totals[i], eagles, birdies, pars, bogeys, best, worst};
+  });
+  let totalBirdies = stats.reduce((s,p) => s + p.birdies + p.eagles, 0);
+  let totalPars = stats.reduce((s,p) => s + p.pars, 0);
+  let mostBirdiesPlayer = stats.reduce((a,b) => (b.birdies + b.eagles) > (a.birdies + a.eagles) ? b : a);
+  let bestSingleHole = Math.min(...stats.map(p => p.best));
+  let bestHolePlayers = stats.filter(p => p.best === bestSingleHole).map(p => p.name);
+  return {ranked, stats, totalBirdies, totalPars, mostBirdiesPlayer, bestSingleHole, bestHolePlayers};
+}
+
+function ordinal(n) {
+  if (n === 1) return '1st';
+  if (n === 2) return '2nd';
+  if (n === 3) return '3rd';
+  return n + 'th';
+}
+
+function buildScoreInputs() {
+  const container = document.getElementById('scoreInputs');
+  container.innerHTML = '';
+  PLAYERS.forEach((name, i) => {
+    container.innerHTML += `<div class="input-row"><label>${name}</label><input class="score-input" id="s_${playerKey(name)}" type="number" inputmode="numeric" placeholder="0"></div>`;
+  });
+}
+
+function buildEditInputs() {
+  const container = document.getElementById('editScoreInputs');
+  container.innerHTML = '';
+  PLAYERS.forEach((name, i) => {
+    container.innerHTML += `<div class="input-row"><label>${name}</label><input class="score-input" id="edit_${playerKey(name)}" type="number" inputmode="numeric"></div>`;
+  });
+}
+
+function buildTableHeader() {
+  let html = '<th>#</th>';
+  PLAYERS.forEach(name => { html += `<th>${name}</th>`; });
+  html += '<th>Word</th>';
+  document.getElementById('tableHeader').innerHTML = html;
+}
+
+function renderPlayerMgmt() {
+  const list = document.getElementById('playerList');
+  list.innerHTML = '';
+  PLAYERS.forEach((name, i) => {
+    list.innerHTML += `<div class="player-list-item">
+      <input type="text" value="${name}" maxlength="20" onchange="renamePlayer(${i}, this.value)" onblur="renamePlayer(${i}, this.value)">
+      <button class="player-remove-btn" onclick="removePlayer(${i})" title="Remove player">&times;</button>
+    </div>`;
+  });
+}
+
+function togglePlayerMgmt() {
+  const el = document.getElementById('playerMgmt');
+  const btn = document.getElementById('togglePlayersBtn');
+  if (el.style.display === 'none') {
+    el.style.display = 'block';
+    btn.textContent = 'Hide Players';
+    renderPlayerMgmt();
+  } else {
+    el.style.display = 'none';
+    btn.textContent = 'Manage Players';
+  }
+}
+
+function addPlayer() {
+  const input = document.getElementById('newPlayerName');
+  const name = input.value.trim();
+  if (!name) return;
+  if (PLAYERS.some(p => p.toLowerCase() === name.toLowerCase())) {
+    alert('Player already exists');
+    return;
+  }
+  PLAYERS.push(name);
+  savePlayers(PLAYERS);
+  // Add score 0 for this player to all existing holes
+  holes.forEach(h => { h.scores.push(0); });
+  saveData(holes);
+  input.value = '';
+  renderPlayerMgmt();
+  buildScoreInputs();
+  buildEditInputs();
+  buildTableHeader();
+  render();
+}
+
+function removePlayer(index) {
+  if (PLAYERS.length <= 2) { alert('Need at least 2 players'); return; }
+  if (!confirm(`Remove ${PLAYERS[index]}? Their scores will be deleted.`)) return;
+  PLAYERS.splice(index, 1);
+  savePlayers(PLAYERS);
+  holes.forEach(h => { h.scores.splice(index, 1); });
+  saveData(holes);
+  renderPlayerMgmt();
+  buildScoreInputs();
+  buildEditInputs();
+  buildTableHeader();
+  render();
+}
+
+function renamePlayer(index, newName) {
+  newName = newName.trim();
+  if (!newName) {
+    renderPlayerMgmt(); // reset to old name
+    return;
+  }
+  if (PLAYERS.some((p, i) => i !== index && p.toLowerCase() === newName.toLowerCase())) {
+    alert('Player name already exists');
+    renderPlayerMgmt();
+    return;
+  }
+  PLAYERS[index] = newName;
+  savePlayers(PLAYERS);
+  buildScoreInputs();
+  buildEditInputs();
+  buildTableHeader();
+  render();
+}
+
+function render() {
+  const totals = getTotals();
+  const complete = isComplete();
+
+  // Leaderboard
+  const ranked = PLAYERS.map((name, i) => ({name, total: totals[i]}))
+    .sort((a, b) => a.total - b.total);
+  let rank = 1;
+  let lb = '';
+  ranked.forEach((p, i) => {
+    if (i > 0 && p.total > ranked[i-1].total) rank = i + 1;
+    const isLeader = rank === 1;
+    lb += `<div class="lb-card${isLeader ? ' leader' : ''}">
+      <div class="lb-name">${p.name}</div>
+      <div class="lb-score ${totalClass(p.total)}">${fmtScore(p.total)}</div>
+      <div class="lb-rank">${ordinal(rank)}</div>
+    </div>`;
+  });
+  document.getElementById('leaderboard').innerHTML = lb;
+
+  // Table
+  let rows = '';
+  holes.forEach((h, i) => {
+    rows += `<tr onclick="openEdit(${i})">`;
+    rows += `<td>${i + 1}</td>`;
+    PLAYERS.forEach((_, pi) => {
+      const s = h.scores[pi] || 0;
+      rows += `<td class="${scoreClass(s)}">${fmtCell(s)}</td>`;
+    });
+    const hidden = isWordHidden(h);
+    rows += `<td class="word${hidden ? ' hidden-word' : ''}">${wordDisplay(h)}</td>`;
+    rows += `</tr>`;
+  });
+  rows += `<tr class="total-row"><td>TOT</td>`;
+  totals.forEach(t => {
+    rows += `<td class="${totalClass(t)}">${fmtScore(t)}</td>`;
+  });
+  rows += `<td></td></tr>`;
+  document.getElementById('scoreBody').innerHTML = rows;
+
+  // Final section or add section
+  const finalEl = document.getElementById('finalSection');
+  const addEl = document.getElementById('addSection');
+
+  if (complete) {
+    addEl.style.display = 'none';
+    const s = getStats();
+    const winner = s.ranked[0];
+    const tied = s.ranked.filter(p => p.total === winner.total);
+    const winnerText = tied.length > 1 ? tied.map(p => p.name).join(' & ') : winner.name;
+    const winnerLabel = tied.length > 1 ? 'TIE GAME' : 'CHAMPION';
+
+    let standingsHtml = '';
+    let r = 1;
+    s.ranked.forEach((p, i) => {
+      if (i > 0 && p.total > s.ranked[i-1].total) r = i + 1;
+      const isFirst = r === 1;
+      standingsHtml += `<div class="standing-row${isFirst ? ' first' : ''}">
+        <span class="standing-pos">${ordinal(r)}</span>
+        <span class="standing-name">${p.name}</span>
+        <span class="standing-score${p.total < 0 ? ' neg' : ''}">${fmtScore(p.total)}</span>
+      </div>`;
+    });
+
+    finalEl.style.display = 'block';
+    finalEl.innerHTML = `<div class="final-banner">
+      <div class="final-label">${winnerLabel}</div>
+      <div class="winner-name">${winnerText}</div>
+      <div class="winner-score">${fmtScore(winner.total)} after 18 holes</div>
+      <div class="final-standings">${standingsHtml}</div>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-label">Total Birdies</div>
+          <div class="stat-value">${s.totalBirdies}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Total Pars</div>
+          <div class="stat-value">${s.totalPars}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Most Under Par</div>
+          <div class="stat-value">${s.mostBirdiesPlayer.name} (${s.mostBirdiesPlayer.birdies + s.mostBirdiesPlayer.eagles})</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Best Single Hole</div>
+          <div class="stat-value">${fmtCell(s.bestSingleHole)} (${s.bestHolePlayers.join(', ')})</div>
+        </div>
+      </div>
+    </div>`;
+  } else {
+    finalEl.style.display = 'none';
+    addEl.style.display = 'block';
+    document.getElementById('addTitle').textContent = `Add Hole ${holes.length + 1}`;
+  }
+
+  document.getElementById('undoBtn').style.display = holes.length > 0 ? 'block' : 'none';
+}
+
+function addHole() {
+  if (holes.length >= MAX_HOLES) return;
+  const word = document.getElementById('wordInput').value.trim().toUpperCase();
+  if (!word || word.length !== 5) { alert('Enter a 5-letter word'); return; }
+  const scores = PLAYERS.map((name) => {
+    const id = 's_' + playerKey(name);
+    const v = document.getElementById(id).value;
+    return v === '' ? 0 : parseInt(v) || 0;
+  });
+  holes.push({scores, word, date: todayStr()});
+  saveData(holes);
+  document.getElementById('wordInput').value = '';
+  PLAYERS.forEach(name => { document.getElementById('s_' + playerKey(name)).value = ''; });
+  render();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function openEdit(index) {
+  editingHole = index;
+  const h = holes[index];
+  document.getElementById('editModalTitle').textContent = `Edit Hole ${index + 1}`;
+  document.getElementById('edit_word').value = h.word;
+  buildEditInputs();
+  PLAYERS.forEach((name, i) => {
+    document.getElementById('edit_' + playerKey(name)).value = h.scores[i] || 0;
+  });
+  document.getElementById('editModal').classList.add('active');
+}
+
+function saveEdit() {
+  const word = document.getElementById('edit_word').value.trim().toUpperCase();
+  if (!word || word.length !== 5) { alert('Enter a 5-letter word'); return; }
+  const scores = PLAYERS.map(name =>
+    parseInt(document.getElementById('edit_' + playerKey(name)).value) || 0
+  );
+  holes[editingHole] = {...holes[editingHole], scores, word};
+  saveData(holes);
+  closeEdit();
+  render();
+}
+
+function closeEdit() {
+  document.getElementById('editModal').classList.remove('active');
+}
+
+function showUndo() {
+  if (confirm(`Remove Hole ${holes.length}?`)) {
+    holes.pop();
+    saveData(holes);
+    render();
+  }
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+}
+
+function generatePNG() {
+  const canvas = document.getElementById('pngCanvas');
+  const ctx = canvas.getContext('2d');
+  const dpr = 2;
+  const numPlayers = PLAYERS.length;
+  const W = Math.max(400, 200 + numPlayers * 56) * dpr;
+  const rowH = 28 * dpr;
+  const headerH = 32 * dpr;
+  const topH = 130 * dpr;
+  const totalRowH = 34 * dpr;
+  const pad = 12 * dpr;
+  const cardTop = topH;
+  const tableH = headerH + (holes.length * rowH) + totalRowH;
+  const complete = isComplete();
+  const summaryH = complete ? 180 * dpr : 0;
+  const H = topH + tableH + pad * 2 + 16 * dpr + summaryH;
+
+  canvas.width = W;
+  canvas.height = H;
+
+  // Green background
+  const grad = ctx.createRadialGradient(W/2, 0, 0, W/2, H/2, H);
+  grad.addColorStop(0, '#3a7233');
+  grad.addColorStop(1, '#1e3d1a');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Title
+  ctx.fillStyle = '#fdf6e3';
+  ctx.font = `700 ${28*dpr}px Georgia, serif`;
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0,0,0,0.4)';
+  ctx.shadowBlur = 4 * dpr;
+  ctx.fillText('GOLFLE', W/2, 36*dpr);
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = 'rgba(253,246,227,0.5)';
+  ctx.font = `400 ${9*dpr}px -apple-system, sans-serif`;
+  ctx.fillText(complete ? 'FINAL RESULTS' : `HOLE ${holes.length} OF 18`, W/2, 50*dpr);
+
+  // Leaderboard cards
+  const totals = getTotals();
+  const ranked = PLAYERS.map((name, i) => ({name, total: totals[i], idx: i}))
+    .sort((a, b) => a.total - b.total);
+  const lbY = 62 * dpr;
+  const cardW = 64 * dpr;
+  const gap = 6 * dpr;
+  const totalLbW = numPlayers * cardW + (numPlayers - 1) * gap;
+  let lbX = (W - totalLbW) / 2;
+
+  ranked.forEach((p) => {
+    const isLeader = p.total <= ranked[0].total;
+    roundRect(ctx, lbX, lbY, cardW, 44*dpr, 5*dpr);
+    ctx.fillStyle = isLeader ? '#fef9e7' : '#fdf6e3';
+    ctx.fill();
+    if (isLeader) {
+      ctx.strokeStyle = '#c5960c';
+      ctx.lineWidth = 1.5 * dpr;
+      ctx.stroke();
+    } else {
+      ctx.strokeStyle = '#d4c9a8';
+      ctx.lineWidth = 0.5 * dpr;
+      ctx.stroke();
+    }
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#6b5d3e';
+    ctx.font = `600 ${8*dpr}px -apple-system, sans-serif`;
+    ctx.fillText(p.name, lbX + cardW/2, lbY + 14*dpr);
+    ctx.fillStyle = p.total < 0 ? '#b91c1c' : p.total > 0 ? '#1a1a1a' : '#4a5568';
+    ctx.font = `700 ${15*dpr}px -apple-system, sans-serif`;
+    ctx.fillText(fmtScore(p.total), lbX + cardW/2, lbY + 32*dpr);
+    lbX += cardW + gap;
+  });
+
+  // Card background
+  const cardX = pad;
+  const cardY = cardTop;
+  const cardWid = W - pad * 2;
+  roundRect(ctx, cardX, cardY, cardWid, tableH + 4*dpr, 6*dpr);
+  ctx.fillStyle = '#fdf6e3';
+  ctx.shadowColor = 'rgba(0,0,0,0.3)';
+  ctx.shadowBlur = 10 * dpr;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.save();
+  ctx.clip();
+
+  // Table columns: #, player1, player2, ..., Word
+  const cols = [32, ...PLAYERS.map(() => 50), 62];
+  const colTot = cols.reduce((a,b) => a+b, 0);
+  const colX = [];
+  let cx = cardX;
+  cols.forEach(c => { colX.push(cx); cx += (c / colTot) * cardWid; });
+  colX.push(cx);
+
+  // Header
+  ctx.fillStyle = '#2d5a27';
+  ctx.fillRect(cardX, cardY, cardWid, headerH);
+  ctx.fillStyle = '#fdf6e3';
+  ctx.font = `700 ${8*dpr}px -apple-system, sans-serif`;
+  ctx.textAlign = 'center';
+  const headers = ['#', ...PLAYERS, 'Word'];
+  headers.forEach((h, i) => {
+    ctx.fillText(h.toUpperCase(), (colX[i] + colX[i+1]) / 2, cardY + headerH * 0.65);
+  });
+
+  // Rows
+  holes.forEach((hole, ri) => {
+    const ry = cardY + headerH + ri * rowH;
+    ctx.fillStyle = ri % 2 === 0 ? '#fdf6e3' : '#faf3de';
+    ctx.fillRect(cardX, ry, cardWid, rowH);
+
+    ctx.strokeStyle = '#e8dfc4';
+    ctx.lineWidth = 0.5 * dpr;
+    ctx.beginPath();
+    ctx.moveTo(cardX, ry + rowH);
+    ctx.lineTo(cardX + cardWid, ry + rowH);
+    ctx.stroke();
+
+    // Hole number
+    ctx.fillStyle = '#f5ecd3';
+    ctx.fillRect(cardX, ry, colX[1] - cardX, rowH);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#6b5d3e';
+    ctx.font = `700 ${9*dpr}px -apple-system, sans-serif`;
+    ctx.fillText(String(ri+1), (colX[0]+colX[1])/2, ry + rowH * 0.66);
+
+    // Scores
+    PLAYERS.forEach((_, si) => {
+      const s = hole.scores[si] || 0;
+      if (s <= -2) {
+        ctx.fillStyle = '#fef2f2';
+        ctx.fillRect(colX[si+1], ry, colX[si+2]-colX[si+1], rowH);
+      } else if (s >= 2) {
+        ctx.fillStyle = '#f5f0e0';
+        ctx.fillRect(colX[si+1], ry, colX[si+2]-colX[si+1], rowH);
+      }
+      if (s <= -2) { ctx.fillStyle = '#b91c1c'; ctx.font = `800 ${10*dpr}px -apple-system, sans-serif`; }
+      else if (s < 0) { ctx.fillStyle = '#b91c1c'; ctx.font = `700 ${10*dpr}px -apple-system, sans-serif`; }
+      else if (s === 0) { ctx.fillStyle = '#9b8e6e'; ctx.font = `400 ${10*dpr}px -apple-system, sans-serif`; }
+      else if (s >= 2) { ctx.fillStyle = '#1a1a1a'; ctx.font = `700 ${10*dpr}px -apple-system, sans-serif`; }
+      else { ctx.fillStyle = '#1a1a1a'; ctx.font = `500 ${10*dpr}px -apple-system, sans-serif`; }
+      ctx.fillText(fmtCell(s), (colX[si+1]+colX[si+2])/2, ry + rowH * 0.66);
+    });
+
+    // Word
+    const wordColIdx = PLAYERS.length + 1;
+    const hidden = isWordHidden(hole);
+    if (hidden) {
+      ctx.fillStyle = '#c9bfa0';
+      ctx.font = `400 ${9*dpr}px -apple-system, sans-serif`;
+      ctx.fillText('?????', (colX[wordColIdx-1]+colX[wordColIdx])/2, ry + rowH * 0.66);
+    } else {
+      ctx.fillStyle = '#2d5a27';
+      ctx.font = `800 ${9*dpr}px -apple-system, sans-serif`;
+      ctx.fillText(hole.word, (colX[wordColIdx-1]+colX[wordColIdx])/2, ry + rowH * 0.66);
+    }
+  });
+
+  // Total row
+  const totY = cardY + headerH + holes.length * rowH;
+  ctx.fillStyle = '#f5ecd3';
+  ctx.fillRect(cardX, totY, cardWid, totalRowH);
+  ctx.strokeStyle = '#2d5a27';
+  ctx.lineWidth = 2 * dpr;
+  ctx.beginPath(); ctx.moveTo(cardX, totY); ctx.lineTo(cardX + cardWid, totY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cardX, totY + 2*dpr); ctx.lineTo(cardX + cardWid, totY + 2*dpr); ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#6b5d3e';
+  ctx.font = `700 ${9*dpr}px -apple-system, sans-serif`;
+  ctx.fillText('TOT', (colX[0]+colX[1])/2, totY + totalRowH * 0.65);
+
+  totals.forEach((t, i) => {
+    ctx.fillStyle = t < 0 ? '#b91c1c' : t > 0 ? '#1a1a1a' : '#4a5568';
+    ctx.font = `800 ${11*dpr}px -apple-system, sans-serif`;
+    ctx.fillText(fmtScore(t), (colX[i+1]+colX[i+2])/2, totY + totalRowH * 0.65);
+  });
+
+  ctx.restore();
+
+  // Final summary in PNG
+  if (complete) {
+    const s = getStats();
+    const winner = s.ranked[0];
+    const tied = s.ranked.filter(p => p.total === winner.total);
+    const winnerText = tied.length > 1 ? tied.map(p => p.name).join(' & ') : winner.name;
+    const winnerLabel = tied.length > 1 ? 'TIE GAME' : 'CHAMPION';
+
+    const sumY = totY + totalRowH + 20 * dpr;
+
+    roundRect(ctx, pad, sumY, cardWid, summaryH - 30*dpr, 6*dpr);
+    ctx.fillStyle = '#fdf6e3';
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 10 * dpr;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    let ty = sumY + 24*dpr;
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#9b8e6e';
+    ctx.font = `600 ${8*dpr}px -apple-system, sans-serif`;
+    ctx.fillText(winnerLabel, W/2, ty);
+    ty += 24*dpr;
+
+    ctx.fillStyle = '#2d5a27';
+    ctx.font = `700 ${22*dpr}px Georgia, serif`;
+    ctx.fillText(winnerText, W/2, ty);
+    ty += 16*dpr;
+
+    ctx.fillStyle = '#c5960c';
+    ctx.font = `700 ${11*dpr}px -apple-system, sans-serif`;
+    ctx.fillText(`${fmtScore(winner.total)} after 18 holes`, W/2, ty);
+    ty += 26*dpr;
+
+    ctx.strokeStyle = '#e8dfc4';
+    ctx.lineWidth = 0.5*dpr;
+    ctx.beginPath(); ctx.moveTo(pad + 20*dpr, ty - 8*dpr); ctx.lineTo(W - pad - 20*dpr, ty - 8*dpr); ctx.stroke();
+
+    let rk = 1;
+    s.ranked.forEach((p, i) => {
+      if (i > 0 && p.total > s.ranked[i-1].total) rk = i + 1;
+      const isFirst = rk === 1;
+      ctx.textAlign = 'left';
+      ctx.fillStyle = isFirst ? '#2d5a27' : '#6b5d3e';
+      ctx.font = `${isFirst ? '700' : '500'} ${(isFirst ? 11 : 10)*dpr}px -apple-system, sans-serif`;
+      ctx.fillText(`${ordinal(rk)}  ${p.name}`, pad + 24*dpr, ty);
+      ctx.textAlign = 'right';
+      ctx.fillStyle = p.total < 0 ? '#b91c1c' : '#1a1a1a';
+      ctx.fillText(fmtScore(p.total), W - pad - 24*dpr, ty);
+      ty += 16 * dpr;
+    });
+  }
+
+  // Export
+  const dataUrl = canvas.toDataURL('image/png');
+  const preview = document.getElementById('pngPreview');
+  preview.innerHTML = `<img src="${dataUrl}" alt="Golfle Scorecard"><div class="png-hint">Long-press the image to save & share</div>`;
+  preview.scrollIntoView({behavior: 'smooth'});
+}
+
+// Initialize dynamic elements
+buildTableHeader();
+buildScoreInputs();
+buildEditInputs();
+render();
+</script>
+</body>
+</html>
